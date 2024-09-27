@@ -33,8 +33,6 @@ import prompts from "prompts";
     },
   ]);
 
-  console.log(response);
-
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = dirname(__filename);
 
@@ -92,6 +90,41 @@ import prompts from "prompts";
         }
       });
     }
+
+    if (!response.isRedux) {
+      const libPath = join(projectPath, "lib");
+      fs.removeSync(libPath);
+
+      const appPath = join(projectPath, "app");
+      const storeProviderPath = join(appPath, "StoreProvider.tsx");
+      if (fs.existsSync(storeProviderPath)) {
+        fs.removeSync(storeProviderPath);
+      }
+
+      const layoutPath = join(appPath, "layout.tsx");
+      if (fs.existsSync(layoutPath)) {
+        const layoutContent = fs.readFileSync(layoutPath, "utf8");
+        const storeProviderImport =
+          /import StoreProvider from '.\/StoreProvider'/g;
+        const newLayoutContent = layoutContent
+          .replace(/<StoreProvider>/g, "")
+          .replace(/<\/StoreProvider>/g, "")
+          .replace(storeProviderImport, "");
+        fs.writeFileSync(layoutPath, newLayoutContent);
+      }
+
+      const packageJson = join(projectPath, "package.json");
+      const packageJsonData = fs.readJSONSync(packageJson);
+      if (packageJsonData?.dependencies?.["react-redux"]) {
+        delete packageJsonData.dependencies["react-redux"];
+      }
+      //remove @reduxjs/toolkit
+      if (packageJsonData?.devDependencies?.["@reduxjs/toolkit"]) {
+        delete packageJsonData.devDependencies["@reduxjs/toolkit"];
+      }
+      fs.writeJSONSync(packageJson, packageJsonData);
+    }
+
     console.log(`Project ${projectName} created successfully.`);
   } catch (err) {
     console.error(`Failed to create project: ${err.message}`);
