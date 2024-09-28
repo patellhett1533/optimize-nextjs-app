@@ -118,12 +118,16 @@ import prompts from "prompts";
       if (packageJsonData?.dependencies?.["react-redux"]) {
         delete packageJsonData.dependencies["react-redux"];
       }
-      //remove @reduxjs/toolkit
       if (packageJsonData?.devDependencies?.["@reduxjs/toolkit"]) {
         delete packageJsonData.devDependencies["@reduxjs/toolkit"];
       }
       fs.writeJSONSync(packageJson, packageJsonData);
     }
+
+    const packageJson = join(projectPath, "package.json");
+    const packageJsonData = fs.readJSONSync(packageJson);
+    packageJsonData.name = projectName;
+    fs.writeJSONSync(packageJson, packageJsonData);
 
     console.log(`Project ${projectName} created successfully.`);
   } catch (err) {
